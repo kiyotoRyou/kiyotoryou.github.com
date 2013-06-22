@@ -1,97 +1,33 @@
-<?xml version="1.0" encoding="utf-8"?>
-  <rss version="2.0"
-        xmlns:content="http://purl.org/rss/1.0/modules/content/"
-        xmlns:atom="http://www.w3.org/2005/Atom"
-  >
-  <channel>
-    <title>Ello</title>
-    <link href="http://ellochen.github.com/feed/" rel="self" />
-    <link href="http://ellochen.github.com" />
-    <lastBuildDate>2013-06-23T01:04:04+09:00</lastBuildDate>
-    <webMaster>silver.accc@gmail.com</webMaster>
-    
-    <item>
-      <title>Openflow多控制器的入门解惑</title>
-      <link href="http://ellochen.github.com/2013/06/OPenFlow%E5%A4%9A%E6%8E%A7%E5%88%B6%E5%99%A8%E7%9A%84%E5%85%A5%E9%97%A8%E8%A7%A3%E6%83%91/"/>
-      <pubDate>2013-06-22T00:00:00+09:00</pubDate>
-      <author>Ello</author>
-      <guid>http://ellochen.github.com/2013/06/OPenFlow多控制器的入门解惑</guid>
-      <content:encoded><![CDATA[<h2>分享一下关于多控制器开发与研究的入门疑惑与解释。</h2>
-
-<p>实验环境是FLoodlight0.9和Open vSwitch1.9，由于两者都仅支持OpenFlow 1.0协议，而多控制器是在OpenFlow 1.2以后才加入的特性，
-于是在做实验时难免会有疑惑，目前的实验环境支持多控制器的加入么，如果想入门研究多控制器是否无法进行呢。
-经过查询和交流，发现ovs支持如下命令：</p>
-
-<pre><code>#ovs-vsctl set-controller br0 tcp:192.168.0.1 tcp:192.168.0.2 </pre>
-
-
-<p></code>
-即直接在单个网桥上连接多个控制器。
-我猜想这个命令是否是把写在前面的ip地址作为主控制器，后面的作为备份控制器，主控制器失去链接后交换机会主动连接备份交换机。
-即通过这条简单的命令是否就可以实现多控制器的主备切换呢？
-做了简单的验证实验，发现交换机不仅同时连接了两个控制器，而且同时向这两个交换机发送同样的消息，控制器也同时向交换机下发消息或者安装流表。
-即这两个控制器在逻辑上是没有任何差别的。
-随之而来的疑问就是这样做的话，岂不是会带来巨大的流量开销和状态信息的不一致性？
-单单支持同时连接是没有意义的，那目前的实验环境是否支持控制器之间简单的协调机制比如角色的分配与协调呢？
-通过查看Floodlight的源代码，发现核心代码中实现了一些对多控制器的支持，比如控制器可以向交换机发出角色变更的请求等。可以说这是对OpenFlow1.2以后的预实现。
-但另一端的Open vSwitch是否支持多控制器的角色请求的应答呢？
-通过简单的验证实验，发现确实可以实现控制器的角色分配。抓包查看发现，控制器角色变更的请求与回复都是放在OF协议的Vendor消息中包含，查看OpenlowF 1.0 spec中关于Vendor消息的说明，Vendor消息提供额外的附加信息功能，为未来版本预留。
-因此猜测Open vSwitch在Openlow1.0的基础上自己扩展了对多控制器的支持。
-继续查看FLoodlight源代码，在<code>org/openflow/vendor/nicira/OFRoleReplyVendorData.java</code>的注释说明中写道</p>
-
-<blockquote><p>Class that represents the vendor data in the role request
-extension implemented by Open vSwitch to support high availability.</p></blockquote>
-
-<p>猜测得到验证。
-在Open vSwitch的mail list中得到里进一步确认。</p>
-
-<p><a href="http://openvswitch.org/pipermail/dev/2010-April/001706.html" title="Title">Add support for multiple OpenFlow controllers on a single bridge.</a></p>
-
-<blockquote><p>With this commit, Open vSwitch permits <strong>a bridge to have any number of
-OpenFlow controllers</strong>.  When multiple controllers are configured, <strong>Open
-vSwitch connects to all of them simultaneously</strong>.  Details of configuration
-are in the vswitch schema documentation.</p>
-
-<p>OpenFlow 1.0 does not specify how multiple controllers coordinate in interacting with a single switch, so more than one controller should be
-specified only if the controllers are themselves designed to coordinate with each other.</p>
-
-<p>An upcoming commit will provide a simple means for coordination between
-multiple controllers.</p></blockquote>
-
-<p><a href="http://openvswitch.org/pipermail/dev/2010-April/001704.html" title="Title">Add support for master/slave controller coordination.</a></p>
-
-<blockquote><p>Now that Open vSwitch has support for multiple simultaneous controllers,
-there is some need for a degree of coordination among them.  For now, the
-plan is for the controllers themselves to take the lead on this.</p>
-
-<p>This commit adds a small bit of OVS infrastructure: the ability for a controller
-to designate itself as a <strong>"master"</strong> or a <strong>"slave"</strong>.  There may be at most one
-master at a time; when a controller designates itself as the master, then
-any existing master is demoted to slave status.  Slave controllers are not
-allowed to modify the flow table or global configuration; any attempt to
-do so is rejected with a "bad request" error.</p></blockquote>
-
-<hr />
-
-<p><a href="https://mailman.stanford.edu/pipermail/openflow-discuss/2010-November/001543.html" title="Title">HP ProCurve switch的mail list</a>中也提到了Open vSwitch中关于多控制器的说明</p>
-
-<blockquote><p>Like Open vSwitch, our implementation will NOT fall back to a second controller, it will only fall back to "secure" or "normal".</p>
-
-<p>Like Open vSwitch, if you specify multiple controllers, it
-will connect to all of them simultaneously.
-Like Open vSwitch, we do implement the Nicira extension to set each controller connection to master or slave. With this scheme, the controllers themselves manage the fall back and decide which of the controllers is elected master, the switch does nothing.</p></blockquote>
-
-<p>得到的结论就是，在OpenFlow 1.2以上版本没有大范围普及的情况下，可以继续在当前配置环境下进行多控制器的入门研究。</p>
-]]></content:encoded>
-    </item>
-    
-    <item>
-      <title>增强现实原理浅析</title>
-      <link href="http://ellochen.github.com/2012/12/%E5%A2%9E%E5%BC%BA%E7%8E%B0%E5%AE%9E%E5%8E%9F%E7%90%86%E6%B5%85%E6%9E%90/"/>
-      <pubDate>2012-12-15T00:00:00+09:00</pubDate>
-      <author>Ello</author>
-      <guid>http://ellochen.github.com/2012/12/增强现实原理浅析</guid>
-      <content:encoded><![CDATA[<p><strong>这是篇旧文了= =没有什么格式</strong></p>
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en-us">
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <meta name="author" content="Ello" />
+    <title>增强现实原理浅析 | Ello</title>
+    <link rel="shortcut icon" href="/favicon.ico">
+    <link href="/feed/" rel="alternate" title="Ello" type="application/atom+xml" />
+    <link rel="stylesheet" href="/media/css/style.css">
+    <link rel="stylesheet" href="/media/css/highlight.css">
+    <script type="text/javascript" src="/media/js/jquery-1.7.1.min.js"></script>
+  </head>
+  <body>
+    <div id="container">
+      <div id="main" role="main">
+        <header>
+        <h1>增强现实原理浅析</h1>
+        </header>
+        <nav>
+        <span><a title="home page" class="" href="/">Home</a></span>
+        <span><a title="about" class="" href="/about/">About</a></span>
+        <span><a title="guestbook" class="" href="/guestbook/">Guestbook</a></span>
+        <span><a title="categories" class="" href="/categories/">Categories</a></span>
+        <span><a title="tags" class="" href="/tags/">Tags</a></span>
+        <span><a title="links" class="" href="/links/">Links</a></span>
+        <span><a title="subscribe by RSS" class="" href="/feed/">Subscribe</a></span>
+        </nav>
+        <article class="content">
+        <section class="post">
+<p><strong>这是篇旧文了= =没有什么格式</strong></p>
 
 <p>增强现实这货，挺有意思，至少我这种准技术宅对它颇有好感。
 想象你大爱的动漫人物啪的跳到你的桌子上，我找过一个初音跳舞的demo，
@@ -286,8 +222,96 @@ kx-y&lt;0的点在直线的另一侧，</p>
 根本不是原理浅析，完全像是编码手记，
 不管怎么样，还算把最近的做的事情给总结了一下，
 有空我会好好整理下的！= =</p>
-]]></content:encoded>
-    </item>
-    
-  </channel>
-</rss>
+
+</section>
+<section class="meta">
+<span class="author">
+  <a href="http://ellochen.github.com/about">Ello</a>
+</span>
+<span class="time">
+  /
+  <time datetime="2012-12-15">2012-12-15</time>
+</span>
+<br />
+<span class="license">
+  Published under <a rel="license" href="http://creativecommons.org/licenses/by-nc-sa/3.0/">(CC) BY-NC-SA</a>
+</span>
+
+<span class="categories">
+  in categories
+  
+  <a href="/categories/#computer vision" title="computer vision">computer vision</a>&nbsp;
+  
+</span>
+
+
+<span class="tags">
+  tagged with 
+  
+  <a href="/tags/#增强现实 ,AR" title="增强现实 ,AR">增强现实 ,AR</a>&nbsp;
+  
+  <a href="/tags/#机器视觉" title="机器视觉">机器视觉</a>&nbsp;
+  
+  <a href="/tags/#算法" title="算法">算法</a>&nbsp;
+  
+</span>
+
+</section>
+<section class="comment">
+<div id="disqus_thread"></div>
+<script type="text/javascript">
+    /* * * CONFIGURATION VARIABLES: EDIT BEFORE PASTING INTO YOUR WEBPAGE * * */
+    var disqus_shortname = 'ello'; // required: replace example with your forum shortname
+    var disqus_url = 'http://ellochen.github.com/2012/12/%E5%A2%9E%E5%BC%BA%E7%8E%B0%E5%AE%9E%E5%8E%9F%E7%90%86%E6%B5%85%E6%9E%90/';
+    /* * * DON'T EDIT BELOW THIS LINE * * */
+    (function() {
+        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+        dsq.src = 'http://' + disqus_shortname + '.disqus.com/embed.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</section>
+
+
+<script type="text/javascript">
+$(function(){
+  $(document).keydown(function(e) {
+    var url = false;
+        if (e.which == 37 || e.which == 74) {  // Left arrow and J
+            
+        }
+        else if (e.which == 39 || e.which == 75) {  // Right arrow and K
+            
+        url = 'http://ellochen.github.com/2013/06/OPenFlow%E5%A4%9A%E6%8E%A7%E5%88%B6%E5%99%A8%E7%9A%84%E5%85%A5%E9%97%A8%E8%A7%A3%E6%83%91/';
+        
+        }
+        if (url) {
+            window.location = url;
+        }
+  });
+})
+</script>
+
+
+        </article>
+      </div>
+
+    <footer>
+        <p><small>Powered by <a href="https://github.com/mojombo/jekyll">Jekyll</a> & <a href="http://pages.github.com">GitHub</a> | Copyright 2008 - 2013 by <a href="http://ellochen.github.com/about/">Ello</a> | <span class="label label-info">2013-06-23 01:04:04 JST</span></small></p>
+    </footer>
+
+    </div>
+
+    <script type="text/javascript">
+      var _gaq = _gaq || [];
+      _gaq.push(['_setAccount', 'UA-12936429-2']);
+      _gaq.push(['_trackPageview']);
+      (function() {
+        var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+        ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+      })();
+    </script>
+  </body>
+</html>
