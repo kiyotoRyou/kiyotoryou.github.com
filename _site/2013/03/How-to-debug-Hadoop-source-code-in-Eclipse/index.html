@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en-us">
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <meta name="author" content="Ryou" />
+    <title>How To Debug Hadoop Source Code In Eclipse | Ryou</title>
+    <link rel="shortcut icon" href="/favicon.ico">
+    <link href="/feed/" rel="alternate" title="Ryou" type="application/atom+xml" />
+    <link rel="stylesheet" href="/media/css/style.css">
+    <link rel="stylesheet" href="/media/css/highlight.css">
+    <script type="text/javascript" src="/media/js/jquery-1.7.1.min.js"></script>
+  </head>
+  <body>
+    <div id="container">
+      <div id="main" role="main">
+        <header>
+        <h1>How To Debug Hadoop Source Code In Eclipse</h1>
+        </header>
+        <nav>
+        <span><a title="home page" class="" href="/">Home</a></span>
+        <span><a title="categories" class="" href="/categories/">Categories</a></span>
+        <span><a title="tags" class="" href="/tags/">Tags</a></span>
+        <span><a title="links" class="" href="/links/">Links</a></span>
+        <span><a title="guestbook" class="" href="/guestbook/">Guestbook</a></span>
+ 	<span><a title="about" class="" href="/about/">About</a></span>
+      <!--  <span><a title="subscribe by RSS" class="" href="/feed/">Subscribe</a></span>-->
+        </nav>
+        <article class="content">
+        <section class="post">
+<p>If you want to learn a open source project,there's maybe two good ways to achieve your goals.First is to communicate with the committers even  better with chair of the project.If this way is difficult to you,perhaps  tracing and debugging the source code is the perfect method.</p>
+
+<p>Some programmers do this work by adding some log info to the source code,but when you had not family enough with the project,it's not a wise choice.
+To set breakpoints and debug step by step will make you mind more clear.</p>
+
+<p>Follow the three steps as follows,you can debug Hadoop source code in Eclipse easily.</p>
+
+<h3>Step 1. Configure environment variable</h3>
+
+<p>In order to configure the hadoop's main thread to be intercepted by a debugger, you may need to configure the environment variable "<code>HADOOP_OPTS</code>" with the debugging information.</p>
+
+<p>The environment variable "HADOOP_OPTS" will be captured by any execution from "<code>/bin/hadoop</code>" command, and therefore, you may only execute it when submitting a Hadoop command.The option interested for you to debug the job on Eclipse is the "<code>address=5000</code>". <em>Change the port number as your preference.</em> The option "suspend=y" tells the JVM to suspend its execution until a debugger have been attached to the executing job at the given port number.</p>
+
+<h4>Running the command in the terminal :</h4>
+
+<blockquote><p>hadoop@master:$ export HADOOP__OPTS="agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=5000"</p></blockquote>
+
+<h4>verifying its value</h4>
+
+<blockquote><p>hadoop@master:$ echo $HADOOP_OPTS
+agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=5000
+== Starting the Suspended Hadoop MapReduce Job"</p></blockquote>
+
+<h3>Step 2. Running the hadoop command</h3>
+
+<p>After you have configured the HADOOP_OPTS environment variable,first start you hadoop cluster and you can have a test  using the regular command. For instance, try running the <code>hadoop fs -ls</code> as follows:</p>
+
+<pre><code>hadoop@master:/hadoop/bin/$ hadoop fs -ls
+Listening for transport dt_socket at address: 5000
+</code></pre>
+
+<h3>Step 3. Configuring Eclipse</h3>
+
+<p>In order to debug the job, you must have created a hadoop source-code Project in Eclipse workplace. Once you have the source-code without compilation problems, you may add a remote debugger.</p>
+
+<p>Going to the Eclipse main menu "<em>Debug -> Debug Configurations -> Remote Java Applications</em>". Change the name of the debugger on top of the screen and add the chosen port number.</p>
+
+<p>Once you click in the button "Debug", the debugger will be attached to the Hadoop thread you have submitted and the execution of the code will continue.</p>
+
+<p>From this point on, the execution of the job will be suspended in the face of any breakpoint you have added into you classes.</p>
+
+</section>
+<section class="meta">
+<span class="author">
+  <a href="http://ellochen.github.com/about">Ryou</a>
+</span>
+<span class="time">
+  /
+  <time datetime="2013-03-08">2013-03-08</time>
+</span>
+<br />
+<span class="license">
+  Published under <a rel="license" href="http://creativecommons.org/licenses/by-nc-sa/3.0/">(CC) BY-NC-SA</a>
+</span>
+
+<span class="categories">
+  in categories
+  
+  <a href="/categories/#hadoop" title="hadoop">hadoop</a>&nbsp;
+  
+</span>
+
+
+<span class="tags">
+  tagged with 
+  
+  <a href="/tags/#Hadoop" title="Hadoop">Hadoop</a>&nbsp;
+  
+  <a href="/tags/#Eclipse" title="Eclipse">Eclipse</a>&nbsp;
+  
+  <a href="/tags/#Debug" title="Debug">Debug</a>&nbsp;
+  
+</span>
+
+</section>
+<section class="comment">
+<div id="disqus_thread"></div>
+<script type="text/javascript">
+    /* * * CONFIGURATION VARIABLES: EDIT BEFORE PASTING INTO YOUR WEBPAGE * * */
+    var disqus_shortname = 'Ryou'; // required: replace example with your forum shortname
+    var disqus_url = 'http://kiyotoryou.github.com/2013/03/How-to-debug-Hadoop-source-code-in-Eclipse/';
+    /* * * DON'T EDIT BELOW THIS LINE * * */
+    (function() {
+        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+        dsq.src = 'http://' + disqus_shortname + '.disqus.com/embed.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</section>
+
+
+<script type="text/javascript">
+$(function(){
+  $(document).keydown(function(e) {
+    var url = false;
+        if (e.which == 37 || e.which == 74) {  // Left arrow and J
+            
+        }
+        else if (e.which == 39 || e.which == 75) {  // Right arrow and K
+            
+        url = 'http://kiyotoryou.github.com/2013/06/OPenFlow%E5%A4%9A%E6%8E%A7%E5%88%B6%E5%99%A8%E7%9A%84%E5%85%A5%E9%97%A8%E8%A7%A3%E6%83%91/';
+        
+        }
+        if (url) {
+            window.location = url;
+        }
+  });
+})
+</script>
+
+
+        </article>
+      </div>
+
+    <footer>
+        <p><small>Powered by <a href="https://github.com/mojombo/jekyll">Jekyll</a> & <a href="http://pages.github.com">GitHub</a> | Copyright 2008 - 2013 | <span class="label label-info">2013-06-23 02:09:02 JST</span></small></p>
+    </footer>
+
+    </div>
+
+    <script type="text/javascript">
+      var _gaq = _gaq || [];
+      _gaq.push(['_setAccount', 'UA-12936429-2']);
+      _gaq.push(['_trackPageview']);
+      (function() {
+        var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+        ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+      })();
+    </script>
+  </body>
+</html>

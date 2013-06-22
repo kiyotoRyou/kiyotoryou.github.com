@@ -4,17 +4,17 @@
         xmlns:atom="http://www.w3.org/2005/Atom"
   >
   <channel>
-    <title>Ello</title>
-    <link href="http://ellochen.github.com/feed/" rel="self" />
-    <lastBuildDate>2013-06-23T01:51:13+09:00</lastBuildDate>
+    <title>Ryou</title>
+    <link href="http://kiyotoryou.github.com/feed/" rel="self" />
+    <lastBuildDate>2013-06-23T02:09:02+09:00</lastBuildDate>
     <webMaster>lcsoft2009@gmail.com</webMaster>
     
     <item>
       <title>Openflow多控制器的入门解惑</title>
-      <link href="http://ellochen.github.com/2013/06/OPenFlow%E5%A4%9A%E6%8E%A7%E5%88%B6%E5%99%A8%E7%9A%84%E5%85%A5%E9%97%A8%E8%A7%A3%E6%83%91/"/>
+      <link href="http://kiyotoryou.github.com/2013/06/OPenFlow%E5%A4%9A%E6%8E%A7%E5%88%B6%E5%99%A8%E7%9A%84%E5%85%A5%E9%97%A8%E8%A7%A3%E6%83%91/"/>
       <pubDate>2013-06-22T00:00:00+09:00</pubDate>
-      <author>Ello</author>
-      <guid>http://ellochen.github.com/2013/06/OPenFlow多控制器的入门解惑</guid>
+      <author>Ryou</author>
+      <guid>http://kiyotoryou.github.com/2013/06/OPenFlow多控制器的入门解惑</guid>
       <content:encoded><![CDATA[<p>总结分享一下最近关于多控制器开发与研究的入门时的疑惑。</p>
 
 <p>实验环境是FLoodlight0.9和Open vSwitch1.9，由于两者都仅支持OpenFlow 1.0协议，而多控制器的支持是在OpenFlow 1.2以后才加入的特性，
@@ -86,6 +86,55 @@ will connect to all of them simultaneously.
 Like Open vSwitch, we do implement the Nicira extension to set each controller connection to master or slave. With this scheme, the controllers themselves manage the fall back and decide which of the controllers is elected master, the switch does nothing.</p></blockquote>
 
 <p>得到的结论就是，在OpenFlow 1.2以上版本没有大范围普及的情况下，可以继续在当前配置环境下进行多控制器的入门研究。</p>
+]]></content:encoded>
+    </item>
+    
+    <item>
+      <title>How To Debug Hadoop Source Code In Eclipse</title>
+      <link href="http://kiyotoryou.github.com/2013/03/How-to-debug-Hadoop-source-code-in-Eclipse/"/>
+      <pubDate>2013-03-08T00:00:00+09:00</pubDate>
+      <author>Ryou</author>
+      <guid>http://kiyotoryou.github.com/2013/03/How-to-debug-Hadoop-source-code-in-Eclipse</guid>
+      <content:encoded><![CDATA[<p>If you want to learn a open source project,there's maybe two good ways to achieve your goals.First is to communicate with the committers even  better with chair of the project.If this way is difficult to you,perhaps  tracing and debugging the source code is the perfect method.</p>
+
+<p>Some programmers do this work by adding some log info to the source code,but when you had not family enough with the project,it's not a wise choice.
+To set breakpoints and debug step by step will make you mind more clear.</p>
+
+<p>Follow the three steps as follows,you can debug Hadoop source code in Eclipse easily.</p>
+
+<h3>Step 1. Configure environment variable</h3>
+
+<p>In order to configure the hadoop's main thread to be intercepted by a debugger, you may need to configure the environment variable "<code>HADOOP_OPTS</code>" with the debugging information.</p>
+
+<p>The environment variable "HADOOP_OPTS" will be captured by any execution from "<code>/bin/hadoop</code>" command, and therefore, you may only execute it when submitting a Hadoop command.The option interested for you to debug the job on Eclipse is the "<code>address=5000</code>". <em>Change the port number as your preference.</em> The option "suspend=y" tells the JVM to suspend its execution until a debugger have been attached to the executing job at the given port number.</p>
+
+<h4>Running the command in the terminal :</h4>
+
+<blockquote><p>hadoop@master:$ export HADOOP__OPTS="agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=5000"</p></blockquote>
+
+<h4>verifying its value</h4>
+
+<blockquote><p>hadoop@master:$ echo $HADOOP_OPTS
+agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=5000
+== Starting the Suspended Hadoop MapReduce Job"</p></blockquote>
+
+<h3>Step 2. Running the hadoop command</h3>
+
+<p>After you have configured the HADOOP_OPTS environment variable,first start you hadoop cluster and you can have a test  using the regular command. For instance, try running the <code>hadoop fs -ls</code> as follows:</p>
+
+<pre><code>hadoop@master:/hadoop/bin/$ hadoop fs -ls
+Listening for transport dt_socket at address: 5000
+</code></pre>
+
+<h3>Step 3. Configuring Eclipse</h3>
+
+<p>In order to debug the job, you must have created a hadoop source-code Project in Eclipse workplace. Once you have the source-code without compilation problems, you may add a remote debugger.</p>
+
+<p>Going to the Eclipse main menu "<em>Debug -> Debug Configurations -> Remote Java Applications</em>". Change the name of the debugger on top of the screen and add the chosen port number.</p>
+
+<p>Once you click in the button "Debug", the debugger will be attached to the Hadoop thread you have submitted and the execution of the code will continue.</p>
+
+<p>From this point on, the execution of the job will be suspended in the face of any breakpoint you have added into you classes.</p>
 ]]></content:encoded>
     </item>
     

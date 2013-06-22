@@ -1,12 +1,10 @@
 ---
 
-layout:	post
-categories: [Tools]
-tags: [Hadoop , Eclispe]
+layout: post
+categories: [Hadoop]
+tags: [Hadoop , Eclipse , Debug]
 
 ---
-
-#How To Debug Hadoop Source Code In Eclipse
 
 If you want to learn a open source project,there's maybe two good ways to achieve your goals.First is to communicate with the committers even  better with chair of the project.If this way is difficult to you,perhaps  tracing and debugging the source code is the perfect method.
 
