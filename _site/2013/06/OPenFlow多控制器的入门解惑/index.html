@@ -18,43 +18,48 @@
         </header>
         <nav>
         <span><a title="home page" class="" href="/">Home</a></span>
-        <span><a title="about" class="" href="/about/">About</a></span>
-        <span><a title="guestbook" class="" href="/guestbook/">Guestbook</a></span>
         <span><a title="categories" class="" href="/categories/">Categories</a></span>
         <span><a title="tags" class="" href="/tags/">Tags</a></span>
         <span><a title="links" class="" href="/links/">Links</a></span>
-        <span><a title="subscribe by RSS" class="" href="/feed/">Subscribe</a></span>
+        <span><a title="guestbook" class="" href="/guestbook/">Guestbook</a></span>
+ 	<span><a title="about" class="" href="/about/">About</a></span>
+      <!--  <span><a title="subscribe by RSS" class="" href="/feed/">Subscribe</a></span>-->
         </nav>
         <article class="content">
         <section class="post">
-<h2>分享一下关于多控制器开发与研究的入门疑惑与解释。</h2>
+<p>总结分享一下最近关于多控制器开发与研究的入门时的疑惑。</p>
 
-<p>实验环境是FLoodlight0.9和Open vSwitch1.9，由于两者都仅支持OpenFlow 1.0协议，而多控制器是在OpenFlow 1.2以后才加入的特性，
-于是在做实验时难免会有疑惑，目前的实验环境支持多控制器的加入么，如果想入门研究多控制器是否无法进行呢。
-经过查询和交流，发现ovs支持如下命令：</p>
+<p>实验环境是FLoodlight0.9和Open vSwitch1.9，由于两者都仅支持OpenFlow 1.0协议，而多控制器的支持是在OpenFlow 1.2以后才加入的特性，
+那目前的实验环境是否支持多控制器的连接，进行一些简单的多控制器开发实验呢？
+经过查询，发现ovs支持如下命令：</p>
 
 <pre><code>#ovs-vsctl set-controller br0 tcp:192.168.0.1 tcp:192.168.0.2 </pre>
 
 
 <p></code>
-即直接在单个网桥上连接多个控制器。
-我猜想这个命令是否是把写在前面的ip地址作为主控制器，后面的作为备份控制器，主控制器失去链接后交换机会主动连接备份交换机。
-即通过这条简单的命令是否就可以实现多控制器的主备切换呢？
-做了简单的验证实验，发现交换机不仅同时连接了两个控制器，而且同时向这两个交换机发送同样的消息，控制器也同时向交换机下发消息或者安装流表。
-即这两个控制器在逻辑上是没有任何差别的。
-随之而来的疑问就是这样做的话，岂不是会带来巨大的流量开销和状态信息的不一致性？
-单单支持同时连接是没有意义的，那目前的实验环境是否支持控制器之间简单的协调机制比如角色的分配与协调呢？
-通过查看Floodlight的源代码，发现核心代码中实现了一些对多控制器的支持，比如控制器可以向交换机发出角色变更的请求等。可以说这是对OpenFlow1.2以后的预实现。
-但另一端的Open vSwitch是否支持多控制器的角色请求的应答呢？
-通过简单的验证实验，发现确实可以实现控制器的角色分配。抓包查看发现，控制器角色变更的请求与回复都是放在OF协议的Vendor消息中包含，查看OpenlowF 1.0 spec中关于Vendor消息的说明，Vendor消息提供额外的附加信息功能，为未来版本预留。
-因此猜测Open vSwitch在Openlow1.0的基础上自己扩展了对多控制器的支持。
-继续查看FLoodlight源代码，在<code>org/openflow/vendor/nicira/OFRoleReplyVendorData.java</code>的注释说明中写道</p>
+即直接在单个网桥上连接多个控制器。</p>
+
+<p>我猜想这个命令可能是把写在前面的ip地址作为主控制器，后面的作为备份控制器，主控制器失去链接后交换机会主动连接备份交换机。
+那通过这条简单的命令是否就可以实现多控制器的主备切换呢？</p>
+
+<p>做了简单的验证实验，得出的结论是<strong>交换机不仅同时连接了两个控制器，而且同时向这两个交换机发送同样的消息，控制器也同时向交换机下发消息或者安装流表。
+即这两个控制器在逻辑上是没有任何差别的</strong>。</p>
+
+<p>随之而来的疑问就是这样做的话，岂不是会带来巨大的流量开销和状态信息的不一致性？
+单单支持同时连接是没有意义的，那目前的实验环境是否支持控制器之间简单的协调机制比如角色的分配与协调呢？</p>
+
+<p>通过查看Floodlight的源代码，发现核心代码中已经实现了一些对多控制器的支持，比如控制器可以向交换机发出角色变更的请求等,可以说这是对OpenFlow1.2以后的预实现。
+但另一端的Open vSwitch是否支持多控制器的角色请求的应答呢？</p>
+
+<p>继续做验证实验，发现确实<strong>可以实现控制器的角色分配</strong>。抓包查看发现，控制器角色变更的请求与回复都是在OF协议的Vendor消息中包含，查看OpenlowF 1.0 spec中关于Vendor消息的说明，Vendor消息提供额外的附加信息功能，为未来版本预留。</p>
+
+<p>因此猜测<strong>Open vSwitch在Openlow1.0的基础上实现了对多控制器的扩展</strong>。
+查看FLoodlight源代码，在<code>org/openflow/vendor/nicira/OFRoleReplyVendorData.java</code>的注释说明中写道</p>
 
 <blockquote><p>Class that represents the vendor data in the role request
 extension implemented by Open vSwitch to support high availability.</p></blockquote>
 
-<p>猜测得到验证。
-在Open vSwitch的mail list中得到里进一步确认。</p>
+<p>猜测得到验证。在Open vSwitch的mail list中得到里进一步确认。</p>
 
 <p><a href="http://openvswitch.org/pipermail/dev/2010-April/001706.html" title="Title">Add support for multiple OpenFlow controllers on a single bridge.</a></p>
 
@@ -111,7 +116,7 @@ Like Open vSwitch, we do implement the Nicira extension to set each controller c
 <span class="categories">
   in categories
   
-  <a href="/categories/#computer vision" title="computer vision">computer vision</a>&nbsp;
+  <a href="/categories/#sdn/openflow" title="sdn/openflow">sdn/openflow</a>&nbsp;
   
 </span>
 
@@ -119,9 +124,13 @@ Like Open vSwitch, we do implement the Nicira extension to set each controller c
 <span class="tags">
   tagged with 
   
-  <a href="/tags/#SDN ,OpenFlow" title="SDN ,OpenFlow">SDN ,OpenFlow</a>&nbsp;
+  <a href="/tags/#SDN" title="SDN">SDN</a>&nbsp;
   
-  <a href="/tags/#Multiple Controller,Open vSwitch" title="Multiple Controller,Open vSwitch">Multiple Controller,Open vSwitch</a>&nbsp;
+  <a href="/tags/#OpenFlow" title="OpenFlow">OpenFlow</a>&nbsp;
+  
+  <a href="/tags/#Multiple Controller" title="Multiple Controller">Multiple Controller</a>&nbsp;
+  
+  <a href="/tags/#Open vSwitch" title="Open vSwitch">Open vSwitch</a>&nbsp;
   
 </span>
 
@@ -130,7 +139,7 @@ Like Open vSwitch, we do implement the Nicira extension to set each controller c
 <div id="disqus_thread"></div>
 <script type="text/javascript">
     /* * * CONFIGURATION VARIABLES: EDIT BEFORE PASTING INTO YOUR WEBPAGE * * */
-    var disqus_shortname = 'ello'; // required: replace example with your forum shortname
+    var disqus_shortname = 'Ryou'; // required: replace example with your forum shortname
     var disqus_url = 'http://ellochen.github.com/2013/06/OPenFlow%E5%A4%9A%E6%8E%A7%E5%88%B6%E5%99%A8%E7%9A%84%E5%85%A5%E9%97%A8%E8%A7%A3%E6%83%91/';
     /* * * DON'T EDIT BELOW THIS LINE * * */
     (function() {
@@ -149,8 +158,6 @@ $(function(){
     var url = false;
         if (e.which == 37 || e.which == 74) {  // Left arrow and J
             
-        url = 'http://ellochen.github.com/2012/12/%E5%A2%9E%E5%BC%BA%E7%8E%B0%E5%AE%9E%E5%8E%9F%E7%90%86%E6%B5%85%E6%9E%90/';
-        
         }
         else if (e.which == 39 || e.which == 75) {  // Right arrow and K
             
@@ -167,7 +174,7 @@ $(function(){
       </div>
 
     <footer>
-        <p><small>Powered by <a href="https://github.com/mojombo/jekyll">Jekyll</a> & <a href="http://pages.github.com">GitHub</a> | Copyright 2008 - 2013 by <a href="http://ellochen.github.com/about/">Ello</a> | <span class="label label-info">2013-06-23 01:04:04 JST</span></small></p>
+        <p><small>Powered by <a href="https://github.com/mojombo/jekyll">Jekyll</a> & <a href="http://pages.github.com">GitHub</a> | Copyright 2008 - 2013 | <span class="label label-info">2013-06-23 01:51:13 JST</span></small></p>
     </footer>
 
     </div>

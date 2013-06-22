@@ -2,10 +2,10 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en-us">
   <head>
     <meta http-equiv="content-type" content="text/html; charset=utf-8" />
-    <meta name="author" content="Ello" />
-    <title>Categories | Ello</title>
+    <meta name="author" content="{{ site.author }}" />
+    <title>{{ page.title }} | {{ site.author }}</title>
     <link rel="shortcut icon" href="/favicon.ico">
-    <link href="/feed/" rel="alternate" title="Ello" type="application/atom+xml" />
+    <link href="/feed/" rel="alternate" title="{{ site.author }}" type="application/atom+xml" />
     <link rel="stylesheet" href="/media/css/style.css">
     <link rel="stylesheet" href="/media/css/highlight.css">
     <script type="text/javascript" src="/media/js/jquery-1.7.1.min.js"></script>
@@ -14,69 +14,24 @@
     <div id="container">
       <div id="main" role="main">
         <header>
-        <h1>Categories</h1>
+        <h1>{{ page.title }}</h1>
         </header>
         <nav>
         <span><a title="home page" class="" href="/">Home</a></span>
+        <span><a title="about" class="" href="/about/">About</a></span>
+        <span><a title="guestbook" class="" href="/guestbook/">Guestbook</a></span>
         <span><a title="categories" class="" href="/categories/">Categories</a></span>
         <span><a title="tags" class="" href="/tags/">Tags</a></span>
         <span><a title="links" class="" href="/links/">Links</a></span>
-        <span><a title="guestbook" class="" href="/guestbook/">Guestbook</a></span>
- 	<span><a title="about" class="" href="/about/">About</a></span>
       <!--  <span><a title="subscribe by RSS" class="" href="/feed/">Subscribe</a></span>-->
         </nav>
         <article class="content">
-        <section class="post">
-<div id='tag_cloud'>
-
-<a href="#sdn/openflow" title="sdn/openflow" rel="1">sdn/openflow (1)</a>
-
-</div>
-
-
-
-
-<ul class="listing">
-
-  <li class="listing-seperator" id="sdn/openflow">sdn/openflow</li>
-
-  <li class="listing-item">
-  <time datetime="2013-06-22">2013-06-22</time>
-  <a href="http://ellochen.github.com/2013/06/OPenFlow%E5%A4%9A%E6%8E%A7%E5%88%B6%E5%99%A8%E7%9A%84%E5%85%A5%E9%97%A8%E8%A7%A3%E6%83%91/" title="Openflow多控制器的入门解惑">Openflow多控制器的入门解惑</a>
-  </li>
-
-
-</ul>
-
-
-
-
-<script src="/media/js/jquery.tagcloud.js" type="text/javascript" charset="utf-8"></script>
-
-
-<p></p>
-
-<script language="javascript">
-$.fn.tagcloud.defaults = {
-    size: {start: 1, end: 1, unit: 'em'},
-      color: {start: '#f8e0e6', end: '#ff3333'}
-};
-
-$(function () {
-    $('#tag_cloud a').tagcloud();
-});
-</script>
-
-
-</section>
-
-
-
+        {{ content }}
         </article>
       </div>
 
     <footer>
-        <p><small>Powered by <a href="https://github.com/mojombo/jekyll">Jekyll</a> & <a href="http://pages.github.com">GitHub</a> | Copyright 2008 - 2013 | <span class="label label-info">2013-06-23 01:51:13 JST</span></small></p>
+        <p><small>Powered by <a href="https://github.com/mojombo/jekyll">Jekyll</a> & <a href="http://pages.github.com">GitHub</a> | Copyright 2008 - {{site.time | date:"%Y"}} | <span class="label label-info">{{site.time | date:"%Y-%m-%d %H:%M:%S %Z"}}</span></small></p>
     </footer>
 
     </div>
