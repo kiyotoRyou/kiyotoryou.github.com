@@ -8,5 +8,5 @@ comments: yes
                       My name is Ryou.
 
 - E-mail:
-  + lcsoft2009@gmail.com    
+  + kiyotoryou@gmail.com   
 
