@@ -1,6 +1,0 @@
-markdown: rdiscount
-permalink: /:year/:month/:title/
-author: Ryou
-pygments: true
-paginate: 16
-url: http://kiyotoryou.github.com
