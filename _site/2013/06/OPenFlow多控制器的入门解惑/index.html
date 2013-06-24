@@ -9,6 +9,18 @@
     <link rel="stylesheet" href="/media/css/style.css">
     <link rel="stylesheet" href="/media/css/highlight.css">
     <script type="text/javascript" src="/media/js/jquery-1.7.1.min.js"></script>
+
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-41956678-1', 'kiyotoryou.github.io');
+  ga('send', 'pageview');
+
+</script>
+
   </head>
   <body>
     <div id="container">
@@ -23,35 +35,34 @@
         <span><a title="links" class="" href="/links/">Links</a></span>
         <span><a title="guestbook" class="" href="/guestbook/">Guestbook</a></span>
  	<span><a title="about" class="" href="/about/">About</a></span>
-      <!--  <span><a title="subscribe by RSS" class="" href="/feed/">Subscribe</a></span>-->
+        <span><a title="subscribe by RSS" class="" href="/feed/">Subscribe</a></span>
         </nav>
         <article class="content">
         <section class="post">
 <p>总结分享一下最近关于多控制器开发与研究的入门时的疑惑。</p>
 
-<p>实验环境是FLoodlight0.9和Open vSwitch1.9，由于两者都仅支持OpenFlow 1.0协议，而多控制器的支持是在OpenFlow 1.2以后才加入的特性，
+<p>实验环境是<strong>FLoodlight 0.9</strong>和<strong>Open vSwitch 1.9</strong>，由于两者都仅支持OpenFlow 1.0协议，而多控制器的支持是在OpenFlow 1.2以后才加入的特性，
 那是否可以在目前的实验环境下进行一些简单的多控制器开发实验呢？
 经过查询，发现ovs支持如下命令：</p>
 
-<pre><code>#ovs-vsctl set-controller br0 tcp:192.168.0.1 tcp:192.168.0.2 </pre>
+<pre><code>#ovs-vsctl set-controller br0 tcp:192.168.0.1 tcp:192.168.0.2
+</code></pre>
 
-
-<p></code>
-即直接在单个网桥上连接多个控制器。</p>
+<p>即直接在单个网桥上连接多个控制器。</p>
 
 <p>我猜想这个命令可能是把写在前面的ip地址作为主控制器，后面的作为备份控制器，主控制器失去链接后交换机会主动连接备份交换机。
 那通过这条简单的命令是否就可以实现多控制器的主备切换呢？</p>
 
-<p>做了简单的验证实验，得出的结论是<strong>交换机不仅同时连接了两个控制器，而且同时向这两个交换机发送同样的消息，控制器也同时向交换机下发消息或者安装流表。
+<p>做了简单的验证实验，答案是否定的。得出的结论是<strong>交换机不仅同时连接了两个控制器，而且同时向这两个交换机发送同样的消息，控制器也同时向交换机下发消息或者安装流表。
 即这两个控制器在逻辑上是没有任何差别的</strong>。</p>
 
-<p>随之而来的疑问就是这样做的话，岂不是会带来巨大的流量开销和状态信息的不一致性？
+<p>随之而来的疑问就是这样做的话，将会带来巨大的流量开销和状态信息的不一致，
 单单支持同时连接是没有意义的，那目前的实验环境是否支持控制器之间简单的协调机制比如角色的分配与协调呢？</p>
 
 <p>通过查看Floodlight的源代码，发现核心代码中已经实现了一些对多控制器的支持，比如控制器可以向交换机发出角色变更的请求等,可以说这是对OpenFlow1.2以后的预实现。
 但另一端的Open vSwitch是否支持多控制器的角色请求的应答呢？</p>
 
-<p>继续做验证实验，发现确实<strong>可以实现控制器的角色分配</strong>。抓包查看发现，控制器角色变更的请求与回复都是在OF协议的Vendor消息中包含，查看OpenlowF 1.0 spec中关于Vendor消息的说明，Vendor消息提供额外的附加信息功能，为未来版本预留。</p>
+<p>继续做验证实验，在控制器端添加发送角色请求的相关代码，发现确实<strong>可以实现控制器的角色分配</strong>。抓包查看发现，控制器角色变更的请求与回复都是在OF协议的Vendor消息中包含，查看OpenlowF 1.0 spec中关于Vendor消息的说明，Vendor消息提供额外的附加信息功能，为未来版本预留。</p>
 
 <p>因此猜测<strong>Open vSwitch在Openlow1.0的基础上实现了对多控制器的扩展</strong>。
 查看FLoodlight源代码，在<code>org/openflow/vendor/nicira/OFRoleReplyVendorData.java</code>的注释说明中写道</p>
@@ -171,25 +182,36 @@ $(function(){
 })
 </script>
 
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-41956678-1', 'kiyotoryou.github.io');
+  ga('send', 'pageview');
+
+</script>
 
         </article>
       </div>
 
     <footer>
-        <p><small>Powered by <a href="https://github.com/mojombo/jekyll">Jekyll</a> & <a href="http://pages.github.com">GitHub</a> | Copyright 2008 - 2013 | <span class="label label-info">2013-06-23 02:45:34 JST</span></small></p>
+        <p><small>Powered by <a href="https://github.com/mojombo/jekyll">Jekyll</a> & <a href="http://pages.github.com">GitHub</a> | Copyright 2008 - 2013 | <span class="label label-info">2013-06-24 17:57:55 JST</span></small></p>
     </footer>
 
     </div>
 
-    <script type="text/javascript">
-      var _gaq = _gaq || [];
-      _gaq.push(['_setAccount', 'UA-12936429-2']);
-      _gaq.push(['_trackPageview']);
-      (function() {
-        var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
-        ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
-        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
-      })();
-    </script>
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-41956678-1', 'kiyotoryou.github.io');
+  ga('send', 'pageview');
+
+</script>
+
   </body>
 </html>
